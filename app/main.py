@@ -1,13 +1,22 @@
 from fastapi import FastAPI
-from core.lora import LoraDriver, LoraPins
-from core.lora.protocol import DataPacket
+from core.lora.driver import LoraDriver
+from core.lora.pins import LoRaPins
+from app.cache import SimpleCache
+
+from app.routes.submodule import router as submodule_router
 
 app = FastAPI()
 
-pins = LoraPins(m0=17, m1=27, aux=22)
-lora_driver = LoraDriver(port="/dev/ttyS0", baudrate=9600, pins=...)  # specify appropriate pins
+# configure pins and driver (adjust pins/port as needed)
+pins = LoRaPins(m0=17, m1=27, aux=22)
+lora_driver = LoraDriver(port="/dev/ttyS0", baudrate=9600, pins=pins)
 
-@app.get("/")
-async def read_root():
-    packet = lora_driver.receive()
-    return packet
+# attach shared objects to app state
+app.state.lora_driver = lora_driver
+app.state.cache = SimpleCache(ttl=300)
+
+app.include_router(submodule_router)
+
+@app.get("/healthz")
+async def health():
+    return {"status": "ok"}
