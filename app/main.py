@@ -38,7 +38,7 @@ def get_latest_packet() -> DataPacket:
     if lora_driver is None:
         raise HTTPException(status_code=503, detail="LoRa not ready")
 
-    packet = lora_driver.get_latest()
+    packet = lora_driver.latest()
     if packet is None:
         raise HTTPException(status_code=404, detail="No LoRa data")
 
@@ -56,9 +56,10 @@ async def read_all():
     """
     packet = get_latest_packet()
     return {
-        "temperature": packet.temperature,
         "ph": packet.ph,
+        "temperature": packet.temperature,
         "turbidity": packet.turbidity,
+        "timestamp": packet.timestamp
     }
 
 
